@@ -710,7 +710,7 @@ def generate_group_html(df, image_labels, output_dir, quick_view=False):
             <div class="image-grid">
                 {% for image in group.images %}
                 <div class="image-container">
-                    <img src="https://raw.githubusercontent.com/oraboy/fungi-clustering/main/images/{{ image.path.split('/')[-1] }}" loading="lazy" alt="Image {{ image.path.split('/')[-1] }}">
+                    <img src="{{ image.path }}" loading="lazy" alt="Image {{ image.path.split('/')[-1] }}">
                     <div class="tooltip">
                         <div class="tooltip-content">
                             <strong>Labels:</strong> {{ image.labels|join(', ') }}
@@ -877,7 +877,7 @@ def generate_cluster_html(clustered_df, df, image_labels, reduced_features, outp
                 {% for image, metadata in clusters[cluster_num] %}
                 {% if image != 'omitted' %}
                 <div class="image-container">
-                    <img src="https://raw.githubusercontent.com/oraboy/fungi-clustering/main/images/{{ image }}" alt="Image {{ image }}">
+                    <img src="../images/{{ image }}" alt="Image {{ image }}">
                     <div class="tooltip">
                         <div class="tooltip-content">
                             <strong>Labels:</strong><br>{{ metadata['labels'] }}<br>
