@@ -742,7 +742,7 @@ def generate_group_html(df, image_labels, output_dir, quick_view=False):
         for _, post in category_posts.iterrows():
             img_name = clean_filename(post['image_url'])
             images.append({
-                'path': img_name,
+                'path': f'../images/{img_name}',
                 'labels': image_labels.get(img_name, [])
             })
         
