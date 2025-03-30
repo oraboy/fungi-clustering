@@ -742,7 +742,7 @@ def generate_group_html(df, image_labels, output_dir, quick_view=False):
         for _, post in category_posts.iterrows():
             img_name = clean_filename(post['image_url'])
             images.append({
-                'path': f'https://raw.githubusercontent.com/oraboy/fungi-clustering/main/images/{img_name}',
+                'path': f'https://oraboy.github.io/fungi-clustering/images/{img_name}',
                 'labels': image_labels.get(img_name, [])
             })
         
@@ -927,7 +927,7 @@ def generate_cluster_html(clustered_df, df, image_labels, reduced_features, outp
                 'labels': '\n'.join(image_labels.get(image, []))
             }
             
-            clusters[cluster_idx].append((f'https://raw.githubusercontent.com/oraboy/fungi-clustering/main/images/{clean_filename(image)}', metadata))
+            clusters[cluster_idx].append((f'https://oraboy.github.io/fungi-clustering/images/{clean_filename(image)}', metadata))
         
         # Add omitted count if any
         if quick_view and omitted_counts[cluster_idx] > 0:
