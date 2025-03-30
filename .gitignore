@@ -1,0 +1,17 @@
+# Credentials and environment
+credentials/
+.env
+
+# Python cache
+__pycache__/
+*.pyc
+
+# System files
+.DS_Store
+
+# Cache directories
+cache/
+.cache/
+
+# Keep output directory
+!output/
