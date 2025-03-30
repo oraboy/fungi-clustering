@@ -710,7 +710,7 @@ def generate_group_html(df, image_labels, output_dir, quick_view=False):
             <div class="image-grid">
                 {% for image in group.images %}
                 <div class="image-container">
-                    <img src="{{ image.path }}" loading="lazy" alt="Image {{ image.path.split('/')[-1] }}">
+                    <img src="images/{{ image.path.split('/')[-1] }}" loading="lazy" alt="Image {{ image.path.split('/')[-1] }}">
                     <div class="tooltip">
                         <div class="tooltip-content">
                             <strong>Labels:</strong> {{ image.labels|join(', ') }}
@@ -742,7 +742,7 @@ def generate_group_html(df, image_labels, output_dir, quick_view=False):
         for _, post in category_posts.iterrows():
             img_name = clean_filename(post['image_url'])
             images.append({
-                'path': f'../images/{img_name}',
+                'path': img_name,
                 'labels': image_labels.get(img_name, [])
             })
         
