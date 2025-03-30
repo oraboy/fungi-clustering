@@ -710,7 +710,7 @@ def generate_group_html(df, image_labels, output_dir, quick_view=False):
             <div class="image-grid">
                 {% for image in group.images %}
                 <div class="image-container">
-                    <img src="{{ image.path }}" loading="lazy">
+                    <img src="https://raw.githubusercontent.com/oraboy/fungi-clustering/main/images/{{ image.path.split('/')[-1] }}" loading="lazy" alt="Image {{ image.path.split('/')[-1] }}">
                     <div class="tooltip">
                         <div class="tooltip-content">
                             <strong>Labels:</strong> {{ image.labels|join(', ') }}
@@ -742,7 +742,7 @@ def generate_group_html(df, image_labels, output_dir, quick_view=False):
         for _, post in category_posts.iterrows():
             img_name = clean_filename(post['image_url'])
             images.append({
-                'path': f'../images/{img_name}',
+                'path': img_name,
                 'labels': image_labels.get(img_name, [])
             })
         
@@ -877,7 +877,7 @@ def generate_cluster_html(clustered_df, df, image_labels, reduced_features, outp
                 {% for image, metadata in clusters[cluster_num] %}
                 {% if image != 'omitted' %}
                 <div class="image-container">
-                    <img src="../../images/{{ image }}" alt="Image {{ image }}">
+                    <img src="https://raw.githubusercontent.com/oraboy/fungi-clustering/main/images/{{ image }}" alt="Image {{ image }}">
                     <div class="tooltip">
                         <div class="tooltip-content">
                             <strong>Labels:</strong><br>{{ metadata['labels'] }}<br>
@@ -985,47 +985,48 @@ def main():
     if args.refresh_vision:
         save_features_and_labels(features_df, image_labels, image_objects, image_web_entities)
     
-    # Generate group visualizations
-    print("\nGenerating group visualizations...")
-    generate_group_html(df, image_labels, output_dir, quick_view=False)
-    generate_group_html(df, image_labels, output_dir, quick_view=True)
-    
-    # Cluster each group separately
-    for category in ['natural', 'stylized', 'staged', 'symbolic']:
-        category_df = df[df['category'] == category]
-        if len(category_df) < 2:  # Skip if not enough posts
-            continue
-            
-        print(f"\nProcessing {category} group...")
-        category_features = features_df[features_df.index.isin(category_df['image_url'].apply(clean_filename))]
+    # Skip group visualizations if category column is missing
+    if 'category' in df.columns:
+        print("\nGenerating group visualizations...")
+        generate_group_html(df, image_labels, output_dir, quick_view=False)
+        generate_group_html(df, image_labels, output_dir, quick_view=True)
         
-        # Reduce dimensions for this category
-        category_reduced = reduce_dimensions(category_features, os.path.join(output_dir, category))
-        if category_reduced is None:
-            print(f"Dimensionality reduction failed for {category} group. Skipping.")
-            continue
+        # Cluster each group separately
+        for category in ['natural', 'stylized', 'staged', 'symbolic']:
+            category_df = df[df['category'] == category]
+            if len(category_df) < 2:  # Skip if not enough posts
+                continue
             
-        # Convert to DataFrame with correct index
-        category_reduced_df = pd.DataFrame(category_reduced, index=category_features.index)
+            print(f"\nProcessing {category} group...")
+            category_features = features_df[features_df.index.isin(category_df['image_url'].apply(clean_filename))]
+        
+            # Reduce dimensions for this category
+            category_reduced = reduce_dimensions(category_features, os.path.join(output_dir, category))
+            if category_reduced is None:
+                print(f"Dimensionality reduction failed for {category} group. Skipping.")
+                continue
             
-        # Cluster images in this category
-        num_clusters = min(args.num_clusters, len(category_df) // 5)  # Adjust number of clusters based on group size
-        if num_clusters < 2:
-            continue
+            # Convert to DataFrame with correct index
+            category_reduced_df = pd.DataFrame(category_reduced, index=category_features.index)
             
-        print(f"Clustering {category} posts into {num_clusters} clusters...")
-        category_clustered = cluster_images(category_reduced_df, os.path.join(output_dir, category), num_clusters)
+            # Cluster images in this category
+            num_clusters = min(args.num_clusters, len(category_df) // 5)  # Adjust number of clusters based on group size
+            if num_clusters < 2:
+                continue
+            
+            print(f"Clustering {category} posts into {num_clusters} clusters...")
+            category_clustered = cluster_images(category_reduced_df, os.path.join(output_dir, category), num_clusters)
         
         # Generate cluster visualizations for this category
-        print(f"Generating cluster visualizations for {category} group...")
-        generate_cluster_html(
-            category_clustered, category_df, image_labels, category_reduced_df,
-            os.path.join(output_dir, category), num_clusters, quick_view=False
-        )
-        generate_cluster_html(
-            category_clustered, category_df, image_labels, category_reduced_df,
-            os.path.join(output_dir, category), num_clusters, quick_view=True
-        )
+            print(f"Generating cluster visualizations for {category} group...")
+            generate_cluster_html(
+                category_clustered, category_df, image_labels, category_reduced_df,
+                os.path.join(output_dir, category), num_clusters, quick_view=False
+            )
+            generate_cluster_html(
+                category_clustered, category_df, image_labels, category_reduced_df,
+                os.path.join(output_dir, category), num_clusters, quick_view=True
+            )
     
     print("\nProcessing complete! Results are in the output directory:")
     print(f"1. Raw features: {os.path.join(output_dir, 'extracted_features.csv')}")
