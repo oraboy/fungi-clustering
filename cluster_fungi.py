@@ -1,6 +1,7 @@
 import os
 import json
 from collections import Counter, defaultdict
+from tqdm import tqdm
 import pandas as pd
 import numpy as np
 from google.cloud import vision
@@ -206,14 +207,20 @@ def load_cached_features():
 
 def save_features_and_labels(features_df, image_labels, image_objects, image_web_entities):
     """Save features, labels, objects, and web entities to cache"""
+    print("Saving cache files...")
     os.makedirs(CACHE_DIR, exist_ok=True)
+    print("- Saving features...")
     features_df.to_csv(os.path.join(CACHE_DIR, 'extracted_features.csv'))
+    print("- Saving labels...")
     with open(os.path.join(CACHE_DIR, 'image_labels.json'), 'w') as f:
         json.dump(image_labels, f)
+    print("- Saving objects...")
     with open(os.path.join(CACHE_DIR, 'image_objects.json'), 'w') as f:
         json.dump(image_objects, f)
+    print("- Saving web entities...")
     with open(os.path.join(CACHE_DIR, 'image_web_entities.json'), 'w') as f:
         json.dump(image_web_entities, f)
+    print("Cache files saved successfully.")
 
 def process_images(df, refresh_vision=False):
     """Process all images and extract features and classify posts"""
@@ -234,7 +241,8 @@ def process_images(df, refresh_vision=False):
                 missing_labels = {}
                 missing_objects = {}
                 missing_web_entities = {}
-                for idx in missing_files:
+                print("Processing missing files...")
+                for idx in tqdm(missing_files):
                     image_filename = clean_filename(df.loc[idx, 'image_url'])
                     image_path = os.path.join(IMAGES_DIR, image_filename)
                     if not os.path.exists(image_path):
@@ -252,8 +260,12 @@ def process_images(df, refresh_vision=False):
                 features_df = pd.concat([features_df, missing_features_df])
                 image_labels.update(missing_labels)
                 
+                # Update objects and web entities
+                image_objects.update(missing_objects)
+                image_web_entities.update(missing_web_entities)
+                
                 # Save updated cache
-                save_features_and_labels(features_df, image_labels, missing_objects, missing_web_entities)
+                save_features_and_labels(features_df, image_labels, image_objects, image_web_entities)
             
             # Now get only the features we need
             features_df = features_df.loc[df.index]
@@ -713,7 +725,10 @@ def generate_group_html(df, image_labels, output_dir, quick_view=False):
                     <img src="{{ image.path }}" loading="lazy" alt="Image {{ image.path.split('/')[-1] }}">
                     <div class="tooltip">
                         <div class="tooltip-content">
-                            <strong>Labels:</strong> {{ image.labels|join(', ') }}
+                            <strong>Post ID:</strong> {{ image.post_id }}<br>
+                            <strong>Date:</strong> {{ image.date }}<br>
+                            <strong>Labels:</strong> {{ image.labels|join(', ') }}<br>
+                            <strong>Caption:</strong> {{ image.caption }}
                         </div>
                     </div>
                 </div>
@@ -743,7 +758,10 @@ def generate_group_html(df, image_labels, output_dir, quick_view=False):
             img_name = clean_filename(post['image_url'])
             images.append({
                 'path': f'https://oraboy.github.io/fungi-clustering/images/{img_name}',
-                'labels': image_labels.get(img_name, [])
+                'labels': image_labels.get(img_name, []),
+                'date': post['post_date'],
+                'caption': post['post_text'],
+                'post_id': post['post_id']
             })
         
         groups_data.append({
