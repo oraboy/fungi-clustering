@@ -27,7 +27,7 @@ FILTER_HASHTAGS = {
 }
 
 FILTER_LABELS = {
-    'Egg',  'Footwear'             # inappropriate content
+    'Egg',  'Footwear' , 'Fashion', 'Wig'            # inappropriate content
 }
 
 # Post classification categories and their associated terms
