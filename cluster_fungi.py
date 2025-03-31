@@ -665,10 +665,10 @@ def generate_group_html(df, image_labels, output_dir, quick_view=False):
                 z-index: 100;
                 background-color: rgba(0, 0, 0, 0.95);
                 color: white;
-                padding: 10px;
-                border-radius: 4px;
-                font-size: 12px;
-                width: 200px;
+                padding: 17px;
+                border-radius: 7px;
+                font-size: 14px;
+                width: 350px;
                 bottom: 110%;
                 left: 50%;
                 transform: translateX(-50%);
@@ -694,7 +694,7 @@ def generate_group_html(df, image_labels, output_dir, quick_view=False):
                 box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             }
             .tooltip-content {
-                max-height: 200px;
+                max-height: 350px;
                 overflow-y: auto;
                 line-height: 1.4;
             }
@@ -759,9 +759,9 @@ def generate_group_html(df, image_labels, output_dir, quick_view=False):
             images.append({
                 'path': f'https://oraboy.github.io/fungi-clustering/images/{img_name}',
                 'labels': image_labels.get(img_name, []),
+                'post_id': post['post_pk'],
                 'date': post['post_date'],
-                'caption': post['post_text'],
-                'post_id': post['post_id']
+                'caption': post['post_text']
             })
         
         groups_data.append({
@@ -837,10 +837,10 @@ def generate_cluster_html(clustered_df, df, image_labels, reduced_features, outp
                 z-index: 100;
                 background-color: rgba(0, 0, 0, 0.95);
                 color: white;
-                padding: 10px;
-                border-radius: 4px;
-                font-size: 12px;
-                width: 200px;
+                padding: 17px;
+                border-radius: 7px;
+                font-size: 14px;
+                width: 350px;
                 bottom: 110%;
                 left: 50%;
                 transform: translateX(-50%);
@@ -866,7 +866,7 @@ def generate_cluster_html(clustered_df, df, image_labels, reduced_features, outp
                 box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             }
             .tooltip-content {
-                max-height: 200px;
+                max-height: 350px;
                 overflow-y: auto;
                 line-height: 1.4;
             }
@@ -898,8 +898,9 @@ def generate_cluster_html(clustered_df, df, image_labels, reduced_features, outp
                     <img src="{{ image }}" alt="Image {{ image.split('/')[-1] }}">
                     <div class="tooltip">
                         <div class="tooltip-content">
-                            <strong>Labels:</strong><br>{{ metadata['labels'] }}<br>
+                            <strong>Post ID:</strong> {{ metadata['post_id'] }}<br>
                             <strong>Date:</strong> {{ metadata['date'] }}<br>
+                            <strong>Labels:</strong> {{ metadata['labels'] }}<br>
                             <strong>Caption:</strong> {{ metadata['caption'] }}
                         </div>
                     </div>
@@ -940,6 +941,7 @@ def generate_cluster_html(clustered_df, df, image_labels, reduced_features, outp
             
             # Create metadata dict
             metadata = {
+                'post_id': image_data['post_pk'],
                 'date': image_data['post_date'],
                 'caption': image_data['post_text'],
                 'labels': '\n'.join(image_labels.get(image, []))
