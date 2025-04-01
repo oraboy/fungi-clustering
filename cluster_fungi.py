@@ -375,6 +375,17 @@ def filter_posts(df, image_labels):
     filtered_by_labels = df[df['image_url'].apply(clean_filename).isin(filtered_filenames)].index
     df = df.drop(filtered_by_labels)
     
+    # Filter out posts with no labels
+    no_labels_count = 0
+    posts_with_no_labels = []
+    for idx, row in df.iterrows():
+        img_name = clean_filename(row['image_url'])
+        if not image_labels.get(img_name, []):
+            posts_with_no_labels.append(idx)
+            no_labels_count += 1
+    
+    df = df.drop(posts_with_no_labels)
+    
     # Print filtering stats
     print("\nFiltered hashtags:")
     for tag, count in found_hashtags.items():
@@ -387,7 +398,7 @@ def filter_posts(df, image_labels):
             print(f"  {label}: {count} posts")
     
     total_filtered = initial_count - len(df)
-    print(f"\nTotal posts remaining: {len(df)} (removed {total_filtered} posts)")
+    print(f"\nTotal posts remaining: {len(df)} (removed {total_filtered} posts, including {no_labels_count} posts with no labels)")
     
     return df
 
