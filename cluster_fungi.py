@@ -52,20 +52,22 @@ POST_CATEGORIES = {
     'staged': {
         'labels': {'studio', 'product', 'indoor', 'artificial light', 'commercial', 'lifestyle',
                   'food', 'drink', 'setup', 'arrangement', 'display', 'clothing', 'fashion',
-                  'merchandise', 'sketch', 'illustration', 'drawing', 'print', 'pattern', 'tattoo',
-                  'body art', 'skin', 'ink', 'piercing', 'body modification', 'flash art'},
+                  'merchandise', 'sketch', 'illustration', 'drawing', 'print', 'pattern'},
         'objects': {'Table', 'Cup', 'Bowl', 'Person', 'Human', 'Furniture', 'Crystal', 'Bottle',
-                   'Clothing', 'Shirt', 'Apparel', 'Paper', 'Canvas', 'Frame', 'Wall', 'Room',
-                   'Tattoo', 'Body art', 'Skin', 'Arm', 'Hand', 'Leg', 'Body', 'Flesh'},
+                   'Clothing', 'Shirt', 'Apparel', 'Paper', 'Canvas', 'Frame', 'Wall', 'Room'},
         'text_markers': {'product', 'shop', 'buy', 'available', 'store', 'healing', 'wellness',
                         'merch', 'design', 'print', 'wear', 'clothing', 'shirt', 'art print',
-                        'tattoo', 'ink', 'body art', 'piercing', 'skin', 'flash', 'studio'},
+                        'studio'},
     },
     'symbolic': {
         'labels': {'art', 'illustration', 'digital', 'painting', 'drawing', 'cartoon', 'graphic',
-                  'fantasy', 'psychedelic', 'surreal', 'abstract', 'generated', 'crafts','craft'},
-        'objects': {'Art', 'Artwork', 'Painting'},
-        'text_markers': {'ai', 'generated', 'artwork', 'design', 'creative', 'trippy', 'psychedelic'},
+                  'fantasy', 'psychedelic', 'surreal', 'abstract', 'generated', 'crafts', 'craft',
+                  'jewelry', 'jewellery', 'earring', 'necklace', 'pendant', 'ring', 'bracelet',
+                  'accessory', 'accessories', 'ornament', 'decorative', 'tattoo', 'body art',
+                  'skin', 'ink', 'piercing', 'body modification', 'flash art'},
+        'objects': {'Art', 'Artwork', 'Painting', 'Tattoo', 'Body art', 'Skin', 'Arm', 'Hand', 'Leg', 'Body', 'Flesh'},
+        'text_markers': {'ai', 'generated', 'artwork', 'design', 'creative', 'trippy', 'psychedelic',
+                        'tattoo', 'ink', 'body art', 'piercing', 'skin', 'flash'},
     },
 }
 
@@ -459,12 +461,16 @@ def classify_post(features, labels, objects, caption, web_entities):
             # Check for AI-generated content
             if any('ai' in entity or 'generated' in entity for entity in web_entities):
                 scores[category] += 5.0
-        elif category == 'staged':
+            # Check for jewelry-related content
+            if any(term in label.lower() for label in labels for term in {'jewelry', 'jewellery', 'earring', 'necklace', 'pendant', 'ring', 'bracelet', 'accessory', 'accessories'}):
+                scores[category] += 5.0  # Strong boost for jewelry items
             # Check for tattoo-related content
-            if any('tattoo' in label or 'body art' in label or 'skin' in label for label in labels) or \
-               any('tattoo' in obj or 'body art' in obj or 'skin' in obj for obj in objects) or \
-               any('tattoo' in tag or 'ink' in tag for tag in hashtags):
+            if any('tattoo' in label.lower() or 'body art' in label.lower() or 'flash art' in label.lower() for label in labels) or \
+               any('tattoo' in obj.lower() or 'body art' in obj.lower() for obj in objects) or \
+               any('tattoo' in tag or 'ink' in tag or 'flash' in tag for tag in hashtags):
                 scores[category] += 5.0  # Strong boost for tattoo content
+        elif category == 'staged':
+            pass  # Moved tattoo-related content to symbolic category
         elif category == 'stylized':
             # Check for artistic photo techniques
             if any(term in labels for term in {'macro photography', 'bokeh', 'depth of field'}):
