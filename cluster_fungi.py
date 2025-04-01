@@ -30,7 +30,7 @@ FILTER_HASHTAGS = {
 FILTER_LABELS = {
     'Egg',  'Footwear' , 'Fashion', 'Wig',
     'Graphic design', 'Poster', 'T-shirt', 'Diagram' , 'Active Shirt', 'Screenshot',          # inappropriate content
-    'Geraniums', 'Creative arts', 'Letter'
+    'Geraniums', 'Creative arts', 'Letter', 'Smile', 'Plastic bottle'
 }
 
 # Post classification categories and their associated terms
