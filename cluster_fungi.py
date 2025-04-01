@@ -28,16 +28,20 @@ FILTER_HASHTAGS = {
 }
 
 FILTER_LABELS = {
-    'Egg',  'Footwear' , 'Fashion', 'Wig'            # inappropriate content
+    'Egg',  'Footwear' , 'Fashion', 'Wig',
+    'Graphic design', 'Poster', 'T-shirt', 'Diagram' , 'Active Shirt', 'Screenshot',          # inappropriate content
+    'Geraniums', 'Creative arts', 'Letter'
 }
 
 # Post classification categories and their associated terms
 POST_CATEGORIES = {
     'natural': {
-        'labels': {'wild', 'forest', 'nature', 'outdoor', 'natural', 'woods', 'trail', 'garden',
-                  'scientific', 'species', 'taxonomy', 'identification', 'mycology', 'biology'},
-        'objects': {'Tree', 'Plant', 'Grass', 'Mushroom', 'Fungus', 'Ground', 'Soil'},
-        'text_markers': {'species', 'found', 'identified', 'specimen', 'habitat', 'wild'},
+        'labels': {'wild', 'forest', 'nature', 'outdoor', 'natural', 'woods', 'trail',
+                  'wilderness', 'wildlife', 'ecosystem', 'habitat', 'landscape', 'environment'},
+        'objects': {'Tree', 'Plant', 'Grass', 'Mushroom', 'Fungus', 'Ground', 'Soil', 'Rock', 'Stone',
+                   'Moss', 'Log', 'Branch', 'Leaf', 'Water', 'Stream', 'Forest Floor'},
+        'text_markers': {'found in', 'growing on', 'spotted in', 'discovered', 'wild', 'forest', 'woods',
+                        'natural habitat', 'ecosystem', 'environment', 'native'},
     },
     'stylized': {
         'labels': {'macro', 'bokeh', 'depth of field', 'photography', 'artistic', 'composition',
@@ -47,14 +51,20 @@ POST_CATEGORIES = {
     },
     'staged': {
         'labels': {'studio', 'product', 'indoor', 'artificial light', 'commercial', 'lifestyle',
-                  'food', 'drink', 'setup', 'arrangement', 'display'},
-        'objects': {'Table', 'Cup', 'Bowl', 'Person', 'Human', 'Furniture', 'Crystal', 'Bottle'},
-        'text_markers': {'product', 'shop', 'buy', 'available', 'store', 'healing', 'wellness'},
+                  'food', 'drink', 'setup', 'arrangement', 'display', 'clothing', 'fashion',
+                  'merchandise', 'sketch', 'illustration', 'drawing', 'print', 'pattern', 'tattoo',
+                  'body art', 'skin', 'ink', 'piercing', 'body modification', 'flash art'},
+        'objects': {'Table', 'Cup', 'Bowl', 'Person', 'Human', 'Furniture', 'Crystal', 'Bottle',
+                   'Clothing', 'Shirt', 'Apparel', 'Paper', 'Canvas', 'Frame', 'Wall', 'Room',
+                   'Tattoo', 'Body art', 'Skin', 'Arm', 'Hand', 'Leg', 'Body', 'Flesh'},
+        'text_markers': {'product', 'shop', 'buy', 'available', 'store', 'healing', 'wellness',
+                        'merch', 'design', 'print', 'wear', 'clothing', 'shirt', 'art print',
+                        'tattoo', 'ink', 'body art', 'piercing', 'skin', 'flash', 'studio'},
     },
     'symbolic': {
         'labels': {'art', 'illustration', 'digital', 'painting', 'drawing', 'cartoon', 'graphic',
-                  'fantasy', 'psychedelic', 'surreal', 'abstract', 'generated'},
-        'objects': {'Art', 'Artwork', 'Painting', 'Drawing'},
+                  'fantasy', 'psychedelic', 'surreal', 'abstract', 'generated', 'crafts','craft'},
+        'objects': {'Art', 'Artwork', 'Painting'},
         'text_markers': {'ai', 'generated', 'artwork', 'design', 'creative', 'trippy', 'psychedelic'},
     },
 }
@@ -232,6 +242,18 @@ def process_images(df, refresh_vision=False):
         features_df, image_labels, image_objects, image_web_entities = load_cached_features()
         if features_df is not None:
             print("Using cached features and labels from previous run")
+            # Add categories to the DataFrame
+            post_categories = {}
+            for idx in df.index:
+                features = features_df.loc[idx] if idx in features_df.index else None
+                labels = image_labels.get(idx, [])
+                objects = image_objects.get(idx, [])
+                web_entities = image_web_entities.get(idx, [])
+                caption = df.loc[idx, 'post_text']
+                category = classify_post(features, labels, objects, caption, web_entities)
+                post_categories[idx] = category
+            df['category'] = pd.Series(post_categories)
+            
             # Check if we have all the features we need
             missing_files = set(df.index) - set(features_df.index)
             if len(missing_files) > 0:
@@ -269,7 +291,7 @@ def process_images(df, refresh_vision=False):
             
             # Now get only the features we need
             features_df = features_df.loc[df.index]
-            return features_df, image_labels, image_objects, image_web_entities
+            return df, features_df, image_labels, image_objects, image_web_entities
     
     features_list = []
     processed_files = []
@@ -309,10 +331,7 @@ def process_images(df, refresh_vision=False):
     # Save results to cache
     save_features_and_labels(features_df, image_labels, image_objects, image_web_entities)
     
-    # Add category to the DataFrame
-    df['category'] = pd.Series(post_categories)
-    
-    return features_df, image_labels, image_objects, image_web_entities
+    return df, features_df, image_labels, image_objects, image_web_entities
 
 def filter_posts(df, image_labels):
     """Filter out posts based on hashtags and Vision API labels"""
@@ -429,6 +448,12 @@ def classify_post(features, labels, objects, caption, web_entities):
             # Check for AI-generated content
             if any('ai' in entity or 'generated' in entity for entity in web_entities):
                 scores[category] += 5.0
+        elif category == 'staged':
+            # Check for tattoo-related content
+            if any('tattoo' in label or 'body art' in label or 'skin' in label for label in labels) or \
+               any('tattoo' in obj or 'body art' in obj or 'skin' in obj for obj in objects) or \
+               any('tattoo' in tag or 'ink' in tag for tag in hashtags):
+                scores[category] += 5.0  # Strong boost for tattoo content
         elif category == 'stylized':
             # Check for artistic photo techniques
             if any(term in labels for term in {'macro photography', 'bokeh', 'depth of field'}):
@@ -989,7 +1014,7 @@ def main():
         df = df.head(args.limit)
     
     # Process images and extract features
-    features_df, image_labels, image_objects, image_web_entities = process_images(df, refresh_vision=args.refresh_vision)
+    df, features_df, image_labels, image_objects, image_web_entities = process_images(df, refresh_vision=args.refresh_vision)
     
     if len(features_df) == 0:
         print("No features were extracted. Please check the errors above.")

@@ -50,14 +50,55 @@ export GOOGLE_APPLICATION_CREDENTIALS="path/to/your/credentials.json"
 python cluster_fungi.py
 ```
 
+## Categories
+
+The script classifies posts into four main categories:
+
+1. **Natural**: Photos of fungi in their natural environment
+   - Wild mushrooms in forests, woods, trails
+   - Natural landscapes and ecosystems
+   - In-situ documentation
+
+2. **Stylized**: Artistic photography of fungi
+   - Macro photography
+   - Bokeh effects
+   - Artistic compositions
+   - Professional lighting
+
+3. **Staged**: Controlled or artificial settings
+   - Studio shots
+   - Product photography
+   - Indoor arrangements
+   - Tattoos and body art
+   - Commercial content
+
+4. **Symbolic**: Artistic interpretations
+   - Illustrations
+   - Digital art
+   - Paintings
+   - AI-generated content
+   - Crafts and handmade items
+
 ## Output
 
 The script generates several files in the `output/` directory:
-1. `extracted_features.csv`: Raw features extracted from images
-2. `reduced_features.csv`: Dimensionality-reduced features
-3. `clustered_data.csv`: Final clustering results
-4. `clusters.html`: Visual representation of all images in each cluster
-5. `clusters_quick.html`: A condensed view showing up to 20 representative images per cluster
+
+1. Raw Data:
+   - `extracted_features.csv`: Raw features from Vision API
+   - `image_labels.json`: Detected labels for each image
+   - `image_objects.json`: Detected objects in each image
+   - `image_web_entities.json`: Web entities associated with images
+
+2. Group Visualizations:
+   - `groups.html`: All images organized by category
+   - `groups_quick.html`: Quick view of each category
+
+3. Category-Specific Results:
+   Each category (natural, stylized, staged, symbolic) has its own subdirectory containing:
+   - `pca_variance.csv`: PCA analysis results
+   - `cluster_analysis.csv`: Detailed cluster statistics
+   - `clusters.html`: Full cluster visualization
+   - `clusters_quick.html`: Representative images from each cluster
 
 ### Quick View Selection Process
 
