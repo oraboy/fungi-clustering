@@ -50,34 +50,76 @@ export GOOGLE_APPLICATION_CREDENTIALS="path/to/your/credentials.json"
 python cluster_fungi.py
 ```
 
-## Categories
+## Classification Process
 
-The script classifies posts into four main categories:
+The script uses a sophisticated multi-factor classification system to categorize posts into four main categories. Each post is evaluated based on:
+
+1. **Vision API Labels**: Primary visual elements detected in the image
+2. **Detected Objects**: Specific objects identified in the image
+3. **Caption Text**: Post text and hashtags
+4. **Web Entities**: Additional context from similar web images
+
+### Classification Categories
 
 1. **Natural**: Photos of fungi in their natural environment
-   - Wild mushrooms in forests, woods, trails
-   - Natural landscapes and ecosystems
-   - In-situ documentation
+   - **Labels**: wild, forest, nature, outdoor, natural, woods, trail
+   - **Objects**: Tree, Plant, Grass, Mushroom, Fungus, Ground, Soil
+   - **Context**: Found in natural settings, growing wild, in-situ documentation
+   - **Boost**: Scientific terms (species, taxonomy, specimen)
 
 2. **Stylized**: Artistic photography of fungi
-   - Macro photography
-   - Bokeh effects
-   - Artistic compositions
-   - Professional lighting
+   - **Labels**: macro, bokeh, depth of field, photography, artistic
+   - **Objects**: Mushroom, Fungus, Plant (with artistic composition)
+   - **Context**: Focus on aesthetic qualities and photographic techniques
+   - **Boost**: Specific photo techniques (macro photography, bokeh)
 
 3. **Staged**: Controlled or artificial settings
-   - Studio shots
-   - Product photography
-   - Indoor arrangements
-   - Tattoos and body art
-   - Commercial content
+   - **Labels**: studio, product, indoor, commercial, lifestyle
+   - **Objects**: Table, Cup, Bowl, Furniture, Crystal, Bottle
+   - **Context**: Commercial products, indoor setups, controlled environments
+   - **Emphasis**: Product presentation and commercial intent
 
 4. **Symbolic**: Artistic interpretations
-   - Illustrations
-   - Digital art
-   - Paintings
-   - AI-generated content
-   - Crafts and handmade items
+   - **Labels**: art, illustration, digital, painting, jewelry, tattoo
+   - **Objects**: Art, Artwork, Painting, Jewelry, Body Art
+   - **Context**: Creative interpretations and artistic expressions
+   - **Boost**: AI-generated content, jewelry items, tattoo art
+
+### Scoring System
+
+Each post receives a score for each category based on:
+1. Vision API labels (2.0 points per match)
+2. Detected objects (1.5 points per match)
+3. Caption text and hashtags (1.0 point per match)
+4. Category-specific boosts (5.0 points for special features)
+
+The post is assigned to the category with the highest final score.
+
+## Clustering Process
+
+After categorization, posts within each category are clustered using the following process:
+
+1. **Feature Extraction**:
+   - Uses Google Cloud Vision API to extract rich visual features
+   - Captures color, texture, shape, and compositional elements
+   - Generates high-dimensional feature vectors
+
+2. **Dimensionality Reduction**:
+   - Applies PCA (Principal Component Analysis)
+   - Preserves 95% of variance while reducing dimensions
+   - Makes clustering more efficient and robust
+
+3. **K-Means Clustering**:
+   - Applies k-means algorithm to the reduced features
+   - Groups similar images based on their visual properties
+   - Default: 10 clusters per category
+
+4. **Cluster Analysis**:
+   - Analyzes each cluster's characteristics:
+     - Common Vision API labels
+     - Frequent hashtags
+     - Visual themes and patterns
+   - Generates cluster summaries with representative images
 
 ## Output
 
